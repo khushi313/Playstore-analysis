@@ -55,11 +55,11 @@ st.pyplot(fig)
 st.subheader("5. Average Rating by Category (Top 10)")
 avg_rating = df.groupby("Category")["Rating"].mean().sort_values(ascending=False).head(10)
 fig, ax = plt.subplots()
-ax.bar(avg_rating.index, avg_rating.values, color="teal")
+ax.bar(avg_rating.index, avg_rating.values, color="teal")`
 ax.set_ylabel("Avg Rating")
 ax.set_ylim(3, 5)
 ax.set_title("Avg Rating by Category")
 plt.xticks(rotation=45, ha="right")
 st.pyplot(fig)
 
-st.caption("Dataset: googleplaystore.csv from Kaggle")
+st.caption("Dataset: datastore.csv from Kaggle")
