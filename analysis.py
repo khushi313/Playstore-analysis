@@ -5,23 +5,23 @@ import matplotlib.pyplot as plt
 st.title("📊 Play Store Analysis Dashboard")
 
 # -------------------------------
-# 📁 Load dataset
+# Load Data
 # -------------------------------
 df = pd.read_csv("dataset.csv")
 
 # -------------------------------
-# 🧹 Data Cleaning
+# Clean Data
 # -------------------------------
 df = df.dropna(subset=['Rating'])
 
-df['Installs'] = df['Installs'].astype(str).str.replace('+','', regex=False).str.replace(',','', regex=False)
+df['Installs'] = df['Installs'].astype(str).str.replace('+','').str.replace(',','')
 df['Installs'] = pd.to_numeric(df['Installs'], errors='coerce')
 
-df['Price'] = df['Price'].astype(str).str.replace('$','', regex=False)
+df['Price'] = df['Price'].astype(str).str.replace('$','')
 df['Price'] = pd.to_numeric(df['Price'], errors='coerce')
 
 # -------------------------------
-# 🔥 TOP APPS BY INSTALLS
+# 🔥 TOP APPS
 # -------------------------------
 st.subheader("🔥 Top Apps by Installs")
 
@@ -29,37 +29,29 @@ top_apps = df.sort_values(by='Installs', ascending=False).head(10)
 
 fig1, ax1 = plt.subplots(figsize=(10,5))
 ax1.bar(top_apps['App'], top_apps['Installs'])
-
-ax1.set_title("Top Apps by Installs")
-ax1.set_xlabel("Apps")
+ax1.set_title("Top Apps")
 ax1.set_ylabel("Installs")
-
-# ✅ FIX SCIENTIFIC NOTATION (1e10 problem)
-ax1.ticklabel_format(style='plain', axis='y')
-
 plt.xticks(rotation=45, ha='right')
 
 st.pyplot(fig1)
 plt.clf()
 
 # -------------------------------
-# ⭐ CATEGORY VS RATING
+# ⭐ CATEGORY RATING
 # -------------------------------
-st.subheader("⭐ Category vs Rating")
+st.subheader("⭐ Category Rating")
 
-cat_rating = df.groupby('Category')['Rating'].mean().sort_values(ascending=False).head(10)
+cat_rating = df.groupby('Category')['Rating'].mean().head(10)
 
-fig2, ax2 = plt.subplots(figsize=(8,5))
-cat_rating.plot(kind='bar', ax=ax2, color='skyblue')
-
-ax2.set_title("Category Rating")
-ax2.set_ylabel("Average Rating")
+fig2, ax2 = plt.subplots()
+cat_rating.plot(kind='bar', ax=ax2)
+ax2.set_title("Category vs Rating")
 
 st.pyplot(fig2)
 plt.clf()
 
 # -------------------------------
-# 💰 FREE VS PAID PIE CHART
+# 💰 PIE CHART: FREE vs PAID
 # -------------------------------
 st.subheader("💰 Free vs Paid Apps")
 
@@ -73,35 +65,27 @@ st.pyplot(fig3)
 plt.clf()
 
 # -------------------------------
-# 📊 RATING DISTRIBUTION
+# 📊 RATING DISTRIBUTION (NEW EASY CHART)
 # -------------------------------
 st.subheader("📊 Rating Distribution")
 
 fig4, ax4 = plt.subplots()
-ax4.hist(df['Rating'], bins=10, color='lightgreen', edgecolor='black')
-
-ax4.set_title("Ratings Distribution")
-ax4.set_xlabel("Rating")
-ax4.set_ylabel("Count")
+ax4.hist(df['Rating'], bins=10, color='skyblue', edgecolor='black')
+ax4.set_title("Ratings Spread")
 
 st.pyplot(fig4)
 plt.clf()
 
 # -------------------------------
-# 📲 CATEGORY INSTALLS (NEW CHART)
+# 📊 INSTALLS COMPARISON (NEW SIMPLE BAR)
 # -------------------------------
-st.subheader("📲 Category-wise Installs")
+st.subheader("📲 Installs Comparison (Top 10)")
 
 installs = df.groupby('Category')['Installs'].sum().sort_values(ascending=False).head(10)
 
 fig5, ax5 = plt.subplots()
 installs.plot(kind='bar', ax=ax5, color='orange')
-
 ax5.set_title("Category Installs")
-ax5.set_ylabel("Total Installs")
-
-# ✅ FIX SCIENTIFIC NOTATION HERE ALSO
-ax5.ticklabel_format(style='plain', axis='y')
 
 st.pyplot(fig5)
 plt.clf()
