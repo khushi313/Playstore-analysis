@@ -1,97 +1,86 @@
 import streamlit as st
 import pandas as pd
-import numpy as np
 import matplotlib.pyplot as plt
 
-st.title("📊 Play Store Analysis Dashboard")
+st.title("📊 Play Store Dashboard (Easy Version)")
 
 # -------------------------------
-# 📁 Load dataset
+# Load Data
 # -------------------------------
 df = pd.read_csv("dataset.csv")
 
 # -------------------------------
-# 🧹 Data Cleaning (SAFE VERSION)
+# Clean Data
 # -------------------------------
-
-# Drop rows where Rating is missing (important)
 df = df.dropna(subset=['Rating'])
 
-# Clean Installs column
-df['Installs'] = df['Installs'].astype(str)
-df['Installs'] = df['Installs'].str.replace('+', '', regex=False)
-df['Installs'] = df['Installs'].str.replace(',', '', regex=False)
+df['Installs'] = df['Installs'].astype(str).str.replace('+','').str.replace(',','')
 df['Installs'] = pd.to_numeric(df['Installs'], errors='coerce')
 
-# Clean Price column
-df['Price'] = df['Price'].astype(str)
-df['Price'] = df['Price'].str.replace('$', '', regex=False)
+df['Price'] = df['Price'].astype(str).str.replace('$','')
 df['Price'] = pd.to_numeric(df['Price'], errors='coerce')
 
 # -------------------------------
-# 📊 Dataset Preview
+# 🔍 SEARCH BAR (APP NAME)
 # -------------------------------
-st.subheader("Dataset Preview")
-st.write(df.head())
+search_app = st.text_input("🔍 Search App Name")
+
+if search_app:
+    df = df[df['App'].str.contains(search_app, case=False, na=False)]
 
 # -------------------------------
-# 📊 GRAPH 1: Top Apps by Installs
+# 📂 CATEGORY FILTER
 # -------------------------------
-st.subheader("Top 10 Apps by Installs")
+category_list = df['Category'].dropna().unique()
+selected_category = st.selectbox("📂 Select Category", ["All"] + list(category_list))
+
+if selected_category != "All":
+    df = df[df['Category'] == selected_category]
+
+# -------------------------------
+# 📊 TOP APPS
+# -------------------------------
+st.subheader("🔥 Top Apps by Installs")
 
 top_apps = df.sort_values(by='Installs', ascending=False).head(10)
 
-fig1, ax1 = plt.subplots()
+fig1, ax1 = plt.subplots(figsize=(8,4))
 ax1.bar(top_apps['App'], top_apps['Installs'])
-plt.xticks(rotation=45)
-
+plt.xticks(rotation=45, ha='right')
 st.pyplot(fig1)
-fig1.tight_layout()
+plt.clf()
 
 # -------------------------------
-# 📊 GRAPH 2: Category vs Rating
+# ⭐ CATEGORY RATING
 # -------------------------------
-st.subheader("Top Categories by Rating")
+st.subheader("⭐ Category Rating")
 
-category_rating = df.groupby('Category')['Rating'].mean().sort_values(ascending=False).head(10)
+cat_rating = df.groupby('Category')['Rating'].mean().head(10)
 
 fig2, ax2 = plt.subplots()
-category_rating.plot(kind='bar', ax=ax2)
-
+cat_rating.plot(kind='bar', ax=ax2)
 st.pyplot(fig2)
-fig2.tight_layout()
+plt.clf()
 
 # -------------------------------
-# 📊 GRAPH 3: Free vs Paid
+# 💰 PIE CHART: FREE vs PAID
 # -------------------------------
-st.subheader("Free vs Paid Apps Rating")
+st.subheader("💰 Free vs Paid Apps (%)")
 
-free_paid = df.groupby('Type')['Rating'].mean()
+type_counts = df['Type'].value_counts()
 
 fig3, ax3 = plt.subplots()
-free_paid.plot(kind='bar', ax=ax3)
+ax3.pie(type_counts, labels=type_counts.index, autopct='%1.1f%%')
+ax3.set_title("Free vs Paid Apps Share")
 
 st.pyplot(fig3)
-fig3.tight_layout()
+plt.clf()
 
 # -------------------------------
-# 📊 GRAPH 4: Rating Distribution
+# 📌 INSIGHTS
 # -------------------------------
-st.subheader("Rating Distribution")
+st.subheader("📌 Insights")
 
-fig4, ax4 = plt.subplots()
-df['Rating'].hist(ax=ax4)
-
-st.pyplot(fig4)
-fig4.tight_layout()
-
-# -------------------------------
-# 📌 Insights
-# -------------------------------
-st.subheader("Insights")
-
-st.write("⭐ Top Categories:")
-st.write(category_rating)
-
-st.write("💰 Free vs Paid Apps:")
-st.write(free_paid)
+st.write("Total Apps:", len(df))
+st.write("Top Categories:")
+st.dataframe(cat_rating)
