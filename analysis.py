@@ -1,93 +1,97 @@
 import streamlit as st
 import pandas as pd
+import numpy as np
 import matplotlib.pyplot as plt
 
-st.set_page_config(layout="centered")
-
-st.title("📊 Play Store Dashboard (Simple & Clean)")
+st.title("📊 Play Store Analysis Dashboard")
 
 # -------------------------------
-# LOAD DATA
+# 📁 Load dataset
 # -------------------------------
 df = pd.read_csv("dataset.csv")
+
+# -------------------------------
+# 🧹 Data Cleaning (SAFE VERSION)
+# -------------------------------
+
+# Drop rows where Rating is missing (important)
 df = df.dropna(subset=['Rating'])
 
-# -------------------------------
-# CLEAN INSTALLS
-# -------------------------------
-df['Installs'] = df['Installs'].astype(str).str.replace('+','', regex=False).str.replace(',','', regex=False)
+# Clean Installs column
+df['Installs'] = df['Installs'].astype(str)
+df['Installs'] = df['Installs'].str.replace('+', '', regex=False)
+df['Installs'] = df['Installs'].str.replace(',', '', regex=False)
 df['Installs'] = pd.to_numeric(df['Installs'], errors='coerce')
 
-# -------------------------------
-# SIMPLE FORMAT
-# -------------------------------
-def format_num(n):
-    if n >= 1e7:
-        return f"{n/1e7:.1f} Cr"
-    elif n >= 1e5:
-        return f"{n/1e5:.1f} L"
-    elif n >= 1e3:
-        return f"{n/1e3:.1f} K"
-    else:
-        return str(int(n))
+# Clean Price column
+df['Price'] = df['Price'].astype(str)
+df['Price'] = df['Price'].str.replace('$', '', regex=False)
+df['Price'] = pd.to_numeric(df['Price'], errors='coerce')
 
 # -------------------------------
-# 🔥 FIX 1: TOP APPS (CLEAR VERSION)
+# 📊 Dataset Preview
 # -------------------------------
-st.subheader("🔥 Top 10 Apps by Installs (Clear View)")
+st.subheader("Dataset Preview")
+st.write(df.head())
 
-top_apps = df[['App','Installs']].dropna().sort_values(by='Installs', ascending=False).head(10)
+# -------------------------------
+# 📊 GRAPH 1: Top Apps by Installs
+# -------------------------------
+st.subheader("Top 10 Apps by Installs")
 
-fig1, ax1 = plt.subplots(figsize=(6,4))  # SMALL SIZE FIX
-ax1.barh(top_apps['App'], top_apps['Installs'])  # horizontal bar = EASY READ
+top_apps = df.sort_values(by='Installs', ascending=False).head(10)
 
-ax1.set_xlabel("Installs")
-ax1.set_title("Top Apps")
-
-ax1.set_xticklabels([format_num(x) for x in ax1.get_xticks()])
+fig1, ax1 = plt.subplots()
+ax1.bar(top_apps['App'], top_apps['Installs'])
+plt.xticks(rotation=45)
 
 st.pyplot(fig1)
-plt.clf()
+fig1.tight_layout()
 
 # -------------------------------
-# 🔥 FIX 2: CATEGORY RATING (CLEAN ONLY RATING)
+# 📊 GRAPH 2: Category vs Rating
 # -------------------------------
-st.subheader("⭐ Top Categories by Average Rating")
+st.subheader("Top Categories by Rating")
 
-cat_rating = df.groupby('Category')['Rating'].mean().sort_values(ascending=True).tail(10)
+category_rating = df.groupby('Category')['Rating'].mean().sort_values(ascending=False).head(10)
 
-fig2, ax2 = plt.subplots(figsize=(6,4))
-ax2.barh(cat_rating.index, cat_rating.values, color='skyblue')
-
-ax2.set_xlabel("Average Rating")
-ax2.set_title("Category Rating")
+fig2, ax2 = plt.subplots()
+category_rating.plot(kind='bar', ax=ax2)
 
 st.pyplot(fig2)
-plt.clf()
+fig2.tight_layout()
 
 # -------------------------------
-# 💰 PIE CHART (SIMPLE)
+# 📊 GRAPH 3: Free vs Paid
 # -------------------------------
-st.subheader("💰 Free vs Paid Apps")
+st.subheader("Free vs Paid Apps Rating")
 
-type_counts = df['Type'].value_counts()
+free_paid = df.groupby('Type')['Rating'].mean()
 
-fig3, ax3 = plt.subplots(figsize=(4,4))
-ax3.pie(type_counts, labels=type_counts.index, autopct='%1.1f%%')
+fig3, ax3 = plt.subplots()
+free_paid.plot(kind='bar', ax=ax3)
 
 st.pyplot(fig3)
-plt.clf()
+fig3.tight_layout()
 
 # -------------------------------
-# 📊 RATING DISTRIBUTION (VERY CLEAR)
+# 📊 GRAPH 4: Rating Distribution
 # -------------------------------
-st.subheader("📊 App Rating Distribution")
+st.subheader("Rating Distribution")
 
-fig4, ax4 = plt.subplots(figsize=(6,4))
-ax4.hist(df['Rating'], bins=8, color='lightgreen', edgecolor='black')
-
-ax4.set_xlabel("Rating")
-ax4.set_ylabel("No. of Apps")
+fig4, ax4 = plt.subplots()
+df['Rating'].hist(ax=ax4)
 
 st.pyplot(fig4)
-plt.clf()
+fig4.tight_layout()
+
+# -------------------------------
+# 📌 Insights
+# -------------------------------
+st.subheader("Insights")
+
+st.write("⭐ Top Categories:")
+st.write(category_rating)
+
+st.write("💰 Free vs Paid Apps:")
+st.write(free_paid)
