@@ -1,6 +1,5 @@
 import streamlit as st
 import pandas as pd
-import numpy as np
 import matplotlib.pyplot as plt
 
 st.title("📊 Play Store Analysis Dashboard")
@@ -15,20 +14,11 @@ df = pd.read_csv("dataset.csv")
 # -------------------------------
 df = df.dropna(subset=['Rating'])
 
-df['Installs'] = df['Installs'].astype(str)
-df['Installs'] = df['Installs'].str.replace('+', '', regex=False)
-df['Installs'] = df['Installs'].str.replace(',', '', regex=False)
+df['Installs'] = df['Installs'].astype(str).str.replace('+', '', regex=False).str.replace(',', '', regex=False)
 df['Installs'] = pd.to_numeric(df['Installs'], errors='coerce')
 
-df['Price'] = df['Price'].astype(str)
-df['Price'] = df['Price'].str.replace('$', '', regex=False)
+df['Price'] = df['Price'].astype(str).str.replace('$', '', regex=False)
 df['Price'] = pd.to_numeric(df['Price'], errors='coerce')
-
-# -------------------------------
-# 📊 Dataset Preview
-# -------------------------------
-st.subheader("📌 Dataset Preview")
-st.dataframe(df.head())
 
 # -------------------------------
 # 📊 GRAPH 1: Top Apps by Installs
@@ -66,14 +56,14 @@ plt.clf()
 # -------------------------------
 # 📊 GRAPH 3: Free vs Paid Apps
 # -------------------------------
-st.subheader("💰 Free vs Paid Apps Rating Comparison")
+st.subheader("💰 Free vs Paid Apps Rating")
 
 free_paid = df.groupby('Type')['Rating'].mean().fillna(0)
 
 fig3, ax3 = plt.subplots(figsize=(5,4))
 free_paid.plot(kind='bar', ax=ax3, color=['green', 'orange'])
 ax3.set_title("Free vs Paid Apps")
-ax3.set_ylabel("Average Rating")
+ax3.set_ylabel("Avg Rating")
 
 st.pyplot(fig3)
 plt.clf()
@@ -93,17 +83,18 @@ st.pyplot(fig4)
 plt.clf()
 
 # -------------------------------
-# 📌 CLEAN INSIGHTS SECTION
+# 📌 SIMPLE + CLEAR INSIGHTS (FIXED)
 # -------------------------------
-st.subheader("📌 Insights (Clean View)")
+st.subheader("📌 Key Insights")
 
-st.markdown("### ⭐ Top Categories")
-st.dataframe(category_rating)
+st.markdown("""
+✔ **Most installed apps are Free apps** → Users prefer free content 📲  
 
-st.markdown("### 💰 Free vs Paid Apps (Average Rating)")
-st.dataframe(free_paid)
+✔ **Paid apps have slightly better ratings** → Quality > quantity 💰  
 
-st.markdown("### 🔥 Key Insight")
-st.write("• Free apps dominate installs 📈")
-st.write("• Paid apps generally have slightly higher ratings 💰")
-st.write("• Most apps are rated between 4.0 - 4.5 ⭐")
+✔ **Top categories vary, but Games & Tools dominate** 🎮  
+
+✔ **Most apps are rated between 4.0 to 4.5** ⭐ → Overall good quality apps  
+
+✔ **Very few apps get low ratings (<3.5)** → Market is competitive 🔥  
+""")
