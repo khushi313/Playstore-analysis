@@ -1,70 +1,97 @@
+import streamlit as st
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 
-# Load dataset
-df = pd.read_csv("googleplaystore.csv")
+st.title("📊 Play Store Analysis Dashboard")
 
+# -------------------------------
+# 📁 Load dataset
+# -------------------------------
+df = pd.read_csv("dataset.csv")
 
+# -------------------------------
+# 🧹 Data Cleaning (SAFE VERSION)
+# -------------------------------
 
-# Show first 5 rows
-print(df.head())
-
-# Data Cleaning
-df = df.dropna()
+# Drop rows where Rating is missing (important)
+df = df.dropna(subset=['Rating'])
 
 # Clean Installs column
-df['Installs'] = df['Installs'].str.replace('+','', regex=False)
-df['Installs'] = df['Installs'].str.replace(',','', regex=False)
+df['Installs'] = df['Installs'].astype(str)
+df['Installs'] = df['Installs'].str.replace('+', '', regex=False)
+df['Installs'] = df['Installs'].str.replace(',', '', regex=False)
+df['Installs'] = pd.to_numeric(df['Installs'], errors='coerce')
 
-df['Installs'] = df['Installs'].astype(int)
-
-# Convert Price
-
-df['Price'] = df['Price'].str.replace('$','', regex=False)
-df['Price'] = df['Price'].astype(float)
-
+# Clean Price column
+df['Price'] = df['Price'].astype(str)
+df['Price'] = df['Price'].str.replace('$', '', regex=False)
+df['Price'] = pd.to_numeric(df['Price'], errors='coerce')
 
 # -------------------------------
-# 📊 GRAPH 1: Installs vs Rating
+# 📊 Dataset Preview
 # -------------------------------
+st.subheader("Dataset Preview")
+st.write(df.head())
+
+# -------------------------------
+# 📊 GRAPH 1: Top Apps by Installs
+# -------------------------------
+st.subheader("Top 10 Apps by Installs")
 
 top_apps = df.sort_values(by='Installs', ascending=False).head(10)
-plt.figure(figsize=(10,5))
-plt.bar(top_apps['App'], top_apps['Installs'])
-plt.xlabel("App Name")
-plt.ylabel("Installs")
-plt.title("Top 10 Apps by Installs")
+
+fig1, ax1 = plt.subplots()
+ax1.bar(top_apps['App'], top_apps['Installs'])
+plt.xticks(rotation=45)
+
+st.pyplot(fig1)
+fig1.tight_layout()
 
 # -------------------------------
 # 📊 GRAPH 2: Category vs Rating
 # -------------------------------
-category_rating = df.groupby('Category')['Rating'].mean().sort_values(ascending=False)
-plt.figure(figsize=(10,5))
-category_rating.head(10).plot(kind='bar')
-plt.title("Top Categories by Rating")
-plt.ylabel("Average Rating")
-# plt.show()
+st.subheader("Top Categories by Rating")
+
+category_rating = df.groupby('Category')['Rating'].mean().sort_values(ascending=False).head(10)
+
+fig2, ax2 = plt.subplots()
+category_rating.plot(kind='bar', ax=ax2)
+
+st.pyplot(fig2)
+fig2.tight_layout()
 
 # -------------------------------
 # 📊 GRAPH 3: Free vs Paid
 # -------------------------------
+st.subheader("Free vs Paid Apps Rating")
+
 free_paid = df.groupby('Type')['Rating'].mean()
-plt.figure(figsize=(10,5))
-free_paid.plot(kind='bar')
-plt.title("Free vs Paid Apps Rating")
-# plt.show()
+
+fig3, ax3 = plt.subplots()
+free_paid.plot(kind='bar', ax=ax3)
+
+st.pyplot(fig3)
+fig3.tight_layout()
 
 # -------------------------------
 # 📊 GRAPH 4: Rating Distribution
 # -------------------------------
-plt.figure(figsize=(10,5))
-df['Rating'].hist()
+st.subheader("Rating Distribution")
 
-plt.title("Rating Distribution")
+fig4, ax4 = plt.subplots()
+df['Rating'].hist(ax=ax4)
 
-plt.show()
+st.pyplot(fig4)
+fig4.tight_layout()
 
-# Insights print
-print("\nTop Categories:\n", category_rating.head())
-print("\nFree vs Paid:\n", free_paid)
+# -------------------------------
+# 📌 Insights
+# -------------------------------
+st.subheader("Insights")
+
+st.write("⭐ Top Categories:")
+st.write(category_rating)
+
+st.write("💰 Free vs Paid Apps:")
+st.write(free_paid)
